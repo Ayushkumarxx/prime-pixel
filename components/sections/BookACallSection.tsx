@@ -1,8 +1,105 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useRef } from "react";
+import { gsap } from "@/lib/gsap";
 
 export function BookACallSection() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const bannerRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLDivElement>(null);
+  const leftStickerRef = useRef<HTMLDivElement>(null);
+  const rightStickerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const ctx = gsap.context(() => {
+      // 1. Orange banner pop up
+      if (bannerRef.current) {
+        gsap.fromTo(
+          bannerRef.current,
+          { opacity: 0, scale: 0.92, y: 35 },
+          {
+            opacity: 1,
+            scale: 1,
+            y: 0,
+            duration: 0.85,
+            ease: "power3.out",
+            scrollTrigger: {
+              trigger: bannerRef.current,
+              start: "top 85%",
+              once: true,
+            },
+          }
+        );
+      }
+
+      // 2. Center Button Bouncy Pop
+      if (buttonRef.current) {
+        gsap.fromTo(
+          buttonRef.current,
+          { opacity: 0, scale: 0.75 },
+          {
+            opacity: 1,
+            scale: 1,
+            duration: 0.75,
+            delay: 0.2,
+            ease: "back.out(2)",
+            scrollTrigger: {
+              trigger: bannerRef.current,
+              start: "top 85%",
+              once: true,
+            },
+          }
+        );
+      }
+
+      // 3. Left Reserve Ticket Pop
+      if (leftStickerRef.current) {
+        gsap.fromTo(
+          leftStickerRef.current,
+          { opacity: 0, scale: 0.6, rotation: -25 },
+          {
+            opacity: 1,
+            scale: 1,
+            rotation: -12,
+            duration: 0.7,
+            delay: 0.35,
+            ease: "back.out(1.8)",
+            scrollTrigger: {
+              trigger: bannerRef.current,
+              start: "top 85%",
+              once: true,
+            },
+          }
+        );
+      }
+
+      // 4. Right Sale Badge Pop
+      if (rightStickerRef.current) {
+        gsap.fromTo(
+          rightStickerRef.current,
+          { opacity: 0, scale: 0.6, rotation: 25 },
+          {
+            opacity: 1,
+            scale: 1,
+            rotation: 12,
+            duration: 0.7,
+            delay: 0.35,
+            ease: "back.out(1.8)",
+            scrollTrigger: {
+              trigger: bannerRef.current,
+              start: "top 85%",
+              once: true,
+            },
+          }
+        );
+      }
+    }, sectionRef);
+
+    return () => ctx.revert();
+  }, []);
+
   // 15 scallops across 1200 width (period = 80px)
   let topScallopD = "M 0 0 ";
   for (let x = 0; x < 1200; x += 80) {
@@ -18,12 +115,16 @@ export function BookACallSection() {
 
   return (
     <section
+      ref={sectionRef}
       id="book-call"
       className="w-full bg-[#FAF8F5] rounded-t-[28px] sm:rounded-t-[40px] md:rounded-t-[48px] pt-8 sm:pt-12 pb-16 px-4 sm:px-6 md:px-8 select-none"
     >
       <div className="max-w-[1400px] mx-auto">
         {/* The Orange Grid Banner matching media_1791549934311.png */}
-        <div className="relative w-full min-h-[300px] h-[320px] sm:h-[380px] md:h-[440px] bg-[#FF4F18] overflow-hidden rounded-[24px] sm:rounded-[36px] flex items-center justify-center">
+        <div
+          ref={bannerRef}
+          className="relative w-full min-h-[300px] h-[320px] sm:h-[380px] md:h-[440px] bg-[#FF4F18] overflow-hidden rounded-[24px] sm:rounded-[36px] flex items-center justify-center"
+        >
           {/* Dark Blueprint Grid Overlay */}
           <div
             className="absolute inset-0 pointer-events-none"
@@ -58,8 +159,11 @@ export function BookACallSection() {
             </svg>
           </div>
 
-          {/* Left Sticker: Green "RESERVE Your Seat" Ticket */}
-          <div className="absolute left-2.5 sm:left-8 md:left-16 lg:left-24 top-5 sm:top-1/2 -translate-y-0 sm:-translate-y-1/2 scale-[0.72] sm:scale-100 origin-top-left -rotate-12 z-20 transition-transform duration-300 hover:-rotate-6 hover:scale-105 cursor-pointer">
+          {/* Left Sticker: Green "RESERVE Your Seat" Ticket - with ample top margin */}
+          <div
+            ref={leftStickerRef}
+            className="absolute left-3 sm:left-8 md:left-16 lg:left-24 top-9 xs:top-11 sm:top-1/2 -translate-y-0 sm:-translate-y-1/2 scale-[0.72] sm:scale-100 origin-top-left -rotate-12 z-20 transition-transform duration-300 hover:-rotate-6 hover:scale-105 cursor-pointer"
+          >
             <div className="relative bg-[#3CD070] border-[3.5px] border-black rounded-lg px-4 sm:px-6 py-2.5 sm:py-3.5 shadow-[5px_7px_0px_#000000] flex flex-col items-center justify-center">
               {/* Ticket Left Notch */}
               <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-[#FF4F18] border-[3.5px] border-black" />
@@ -86,9 +190,9 @@ export function BookACallSection() {
           </div>
 
           {/* Center 3D Yellow Pill Button: "Book a Call" */}
-          <div className="relative z-20 flex flex-col items-center">
+          <div ref={buttonRef} className="relative z-20 flex flex-col items-center">
             <a
-              href="#contact"
+              href="#book-call"
               className="group relative inline-flex flex-col items-center justify-center px-7 sm:px-16 md:px-20 py-3 sm:py-6 md:py-7 rounded-full bg-[#FFBA08] border-[3.5px] sm:border-[4px] border-black shadow-[0_8px_0_#000000] sm:shadow-[0_12px_0_#000000] transition-all duration-200 hover:translate-y-1 hover:shadow-[0_8px_0_#000000] active:translate-y-2.5 active:shadow-[0_2px_0_#000000] cursor-pointer"
             >
               <span
@@ -102,8 +206,11 @@ export function BookACallSection() {
             </a>
           </div>
 
-          {/* Right Sticker: Blue "Sale!" Starburst Badge */}
-          <div className="absolute right-2.5 sm:right-8 md:right-16 lg:right-24 bottom-5 sm:top-1/2 -translate-y-0 sm:-translate-y-1/2 scale-[0.72] sm:scale-100 origin-bottom-right rotate-12 z-20 transition-transform duration-300 hover:rotate-6 hover:scale-105 cursor-pointer">
+          {/* Right Sticker: Blue "Sale!" Starburst Badge - Padded inside with extra margin */}
+          <div
+            ref={rightStickerRef}
+            className="absolute right-5 xs:right-7 sm:right-10 md:right-16 lg:right-24 bottom-8 xs:bottom-10 sm:top-1/2 sm:bottom-auto -translate-y-0 sm:-translate-y-1/2 scale-[0.72] sm:scale-100 origin-bottom-right rotate-12 z-20 transition-transform duration-300 hover:rotate-6 hover:scale-105 cursor-pointer"
+          >
             <div className="relative w-20 h-20 sm:w-28 sm:h-28 md:w-32 md:h-32 flex items-center justify-center drop-shadow-[5px_7px_0px_#000000]">
               {/* 16-point Starburst SVG */}
               <svg
@@ -123,11 +230,11 @@ export function BookACallSection() {
           </div>
         </div>
 
-        {/* Subtitle Copy below orange banner matching media_1791549934311.png */}
+        {/* Subtitle Copy below orange banner */}
         <div className="mt-6 sm:mt-8 flex justify-center sm:justify-end">
           <p className="max-w-xl text-center sm:text-right text-zinc-900 font-bold text-xs sm:text-base md:text-lg leading-snug">
-            From Smashed Patties At Shake Shack To Glamburgers At Honky Tonk,
-            There&apos;s A Little Something For Everyone.
+            From High-Growth Meta Campaigns To Full-Scale Creator Management &amp; Brand Deals.
+            
           </p>
         </div>
       </div>

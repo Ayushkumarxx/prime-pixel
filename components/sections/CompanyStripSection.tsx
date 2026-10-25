@@ -1,8 +1,34 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useRef } from "react";
+import { gsap } from "@/lib/gsap";
 
 export function CompanyStripSection() {
+  const stripRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !stripRef.current) return;
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        stripRef.current,
+        { opacity: 0, y: 25 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.85,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: stripRef.current,
+            start: "top 90%",
+            once: true,
+          },
+        }
+      );
+    }, stripRef);
+
+    return () => ctx.revert();
+  }, []);
+
   const partners = [
     {
       name: "Google",
@@ -66,7 +92,11 @@ export function CompanyStripSection() {
   const marqueePartners = [...partners, ...partners];
 
   return (
-    <section className="relative w-full bg-[#E8E8EA] py-7 sm:py-9 select-none overflow-hidden">
+    <section
+      ref={stripRef}
+      style={{ opacity: 0 }}
+      className="relative w-full bg-[#E8E8EA] py-7 sm:py-9 select-none overflow-hidden"
+    >
       {/* Left & Right subtle edge fade */}
       <div className="absolute left-0 top-0 bottom-0 w-16 sm:w-24 bg-gradient-to-r from-[#E8E8EA] to-transparent z-10 pointer-events-none" />
       <div className="absolute right-0 top-0 bottom-0 w-16 sm:w-24 bg-gradient-to-l from-[#E8E8EA] to-transparent z-10 pointer-events-none" />

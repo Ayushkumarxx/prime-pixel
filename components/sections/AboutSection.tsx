@@ -1,9 +1,10 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import Image from "next/image";
-import { Sparkles, Zap, Flame, TrendingUp, ArrowUpRight } from "lucide-react";
+import { Sparkles, Zap, Flame, TrendingUp } from "lucide-react";
 import { aboutAbstract1 } from "@/public/images";
+import { gsap, ScrollTrigger } from "@/lib/gsap";
 
 // Custom Chunky 6-pointed Brutalist Asterisk / Starburst
 function BrutalistStar({
@@ -44,8 +45,127 @@ function BrutalistStar({
 }
 
 export function AboutSection() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const contentRef = useRef<HTMLParagraphElement>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const ctx = gsap.context(() => {
+      // 1. Photo Subtle Fade & Scale In
+      const photo = sectionRef.current?.querySelector(".about-photo-card");
+      if (photo) {
+        gsap.fromTo(
+          photo,
+          { opacity: 0, scale: 0.94, y: 30 },
+          {
+            opacity: 1,
+            scale: 1,
+            y: 0,
+            duration: 0.85,
+            ease: "power2.out",
+            scrollTrigger: {
+              trigger: photo,
+              start: "top 85%",
+              once: true,
+            },
+          }
+        );
+      }
+
+      // 2. Heading Staggered Left-to-Right + Bottom-to-Up Reveal (ABOUT US)
+      if (headingRef.current) {
+        gsap.fromTo(
+          headingRef.current,
+          { opacity: 0, x: -35, y: 30 },
+          {
+            opacity: 1,
+            x: 0,
+            y: 0,
+            duration: 0.85,
+            ease: "power3.out",
+            scrollTrigger: {
+              trigger: headingRef.current,
+              start: "top 85%",
+              once: true,
+            },
+          }
+        );
+      }
+
+      // 3. Editorial Description Reveal
+      if (contentRef.current) {
+        gsap.fromTo(
+          contentRef.current,
+          { opacity: 0, y: 25 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.8,
+            delay: 0.15,
+            ease: "power3.out",
+            scrollTrigger: {
+              trigger: contentRef.current,
+              start: "top 85%",
+              once: true,
+            },
+          }
+        );
+      }
+
+      // 4. Two Brutalist Stars Smoothly Managed Scroll Rotation
+      gsap.to(".about-star-orange", {
+        rotation: 160,
+        ease: "none",
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: "top bottom",
+          end: "bottom top",
+          scrub: 2.5,
+        },
+      });
+
+      gsap.to(".about-star-white", {
+        rotation: -160,
+        ease: "none",
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: "top bottom",
+          end: "bottom top",
+          scrub: 2.5,
+        },
+      });
+
+      // 5. Staggered 2026 Entrance (20 then 26)
+      const yearDigits = sectionRef.current?.querySelectorAll(".about-year-digit");
+      if (yearDigits && yearDigits.length > 0) {
+        gsap.fromTo(
+          yearDigits,
+          { opacity: 0, y: 45, scale: 0.8 },
+          {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            duration: 0.8,
+            stagger: 0.2,
+            ease: "back.out(1.5)",
+            scrollTrigger: {
+              trigger: yearDigits[0],
+              start: "top 85%",
+              once: true,
+            },
+          }
+        );
+      }
+    }, sectionRef);
+
+    return () => ctx.revert();
+  }, []);
+
   return (
     <section
+      ref={sectionRef}
       id="about"
       className="relative w-full bg-[#E8E8EA] py-14 sm:py-24 md:py-32 px-4 sm:px-6 md:px-10 select-none overflow-hidden"
     >
@@ -69,7 +189,10 @@ export function AboutSection() {
           {/* Left Col (7 cols): Sharp Image (No Border Radius) + Text Right Beside It */}
           <div className="lg:col-span-7 flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-8 md:gap-10">
             {/* Image: Sharp 90-Degree Corners (No Border Radius) */}
-            <div className="relative w-full max-w-[280px] xs:max-w-[320px] sm:max-w-none sm:w-[300px] md:w-[340px] aspect-[3/4] overflow-hidden bg-zinc-900 border border-zinc-400/90 shadow-2xl shadow-black/10 shrink-0 group">
+            <div
+              className="about-photo-card relative w-full max-w-[280px] xs:max-w-[320px] sm:max-w-none sm:w-[300px] md:w-[340px] aspect-[3/4] overflow-hidden bg-zinc-900 border border-zinc-400/90 shadow-2xl shadow-black/10 shrink-0 group"
+              style={{ opacity: 0 }}
+            >
               <Image
                 src={aboutAbstract1}
                 alt="PrimePixel Minimalist Abstract Art"
@@ -82,9 +205,10 @@ export function AboutSection() {
 
             {/* Text Placed RIGHT AFTER the image */}
             <div className="max-w-lg pt-1 sm:pt-2 text-left w-full">
-              {/* Highlighted Orange Heading (The Most Highlighted Heading) */}
+              {/* Highlighted Blue Heading as requested */}
               <h2
-                className="text-4xl xs:text-5xl sm:text-6xl md:text-7xl lg:text-8xl uppercase font-black tracking-tight text-[#FF5E1E] leading-none mb-3 sm:mb-6 select-none"
+                ref={headingRef}
+                className="text-4xl xs:text-5xl sm:text-6xl md:text-7xl lg:text-8xl uppercase font-black tracking-tight text-[#2952FF] leading-none mb-3 sm:mb-6 select-none"
                 style={{
                   fontFamily: "var(--font-condensed), Anton, Impact, sans-serif",
                   letterSpacing: "-0.015em",
@@ -94,7 +218,10 @@ export function AboutSection() {
               </h2>
 
               {/* Bolder Description with Different Colors & Inline Icons */}
-              <p className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-zinc-950 leading-snug sm:leading-normal">
+              <p
+                ref={contentRef}
+                className="text-base sm:text-lg md:text-xl lg:text-2xl font-bold text-zinc-950 leading-snug sm:leading-normal"
+              >
                 We are <span className="text-[#FF5E1E]">PrimePixel</span>{" "}
                 <Sparkles className="inline-block w-4 h-4 sm:w-5 sm:h-5 text-[#FF5E1E] mx-0.5 -translate-y-0.5" />{" "}
                 — the talent management & digital media powerhouse. We scout and
@@ -121,13 +248,13 @@ export function AboutSection() {
           <div className="lg:col-span-5 flex flex-col justify-between h-full pt-1">
             {/* Bigger Chunky Asterisks in Top Right - Flat Brutalist Style Without Shadows */}
             <div className="flex items-center justify-end gap-5 sm:gap-8 w-full">
-              {/* Massive Prime Orange Star */}
-              <div className="w-24 h-24 xs:w-28 xs:h-28 sm:w-44 sm:h-44 md:w-52 md:h-52 lg:w-60 lg:h-60 shrink-0">
+              {/* Massive Prime Orange Star with GSAP Scroll Rotation */}
+              <div className="about-star-orange w-24 h-24 xs:w-28 xs:h-28 sm:w-44 sm:h-44 md:w-52 md:h-52 lg:w-60 lg:h-60 shrink-0">
                 <BrutalistStar className="w-full h-full" color="#FF5E1E" />
               </div>
 
-              {/* Big White Star */}
-              <div className="w-16 h-16 xs:w-18 xs:h-18 sm:w-28 sm:h-28 md:w-36 md:h-36 lg:w-40 lg:h-40 shrink-0 -translate-y-3 sm:-translate-y-6">
+              {/* Big White Star with GSAP Scroll Rotation */}
+              <div className="about-star-white w-16 h-16 xs:w-18 xs:h-18 sm:w-28 sm:h-28 md:w-36 md:h-36 lg:w-40 lg:h-40 shrink-0 -translate-y-3 sm:-translate-y-6">
                 <BrutalistStar className="w-full h-full" color="#FFFFFF" />
               </div>
             </div>
@@ -135,19 +262,21 @@ export function AboutSection() {
             {/* Sized-Down & Shifted Upward Staggered 2026 */}
             <div className="mt-4 sm:mt-6 md:mt-8 flex flex-col items-end leading-[0.76] select-none text-right">
               <span
-                className="text-6xl sm:text-8xl md:text-[105px] lg:text-[130px] font-black tracking-tighter text-zinc-950 -translate-x-4 sm:-translate-x-12 md:-translate-x-16"
+                className="about-year-digit text-6xl sm:text-8xl md:text-[105px] lg:text-[130px] font-black tracking-tighter text-zinc-950 -translate-x-4 sm:-translate-x-12 md:-translate-x-16"
                 style={{
                   fontFamily: "var(--font-condensed), Anton, Impact, sans-serif",
                   letterSpacing: "-0.03em",
+                  opacity: 0,
                 }}
               >
                 20
               </span>
               <span
-                className="text-5xl sm:text-7xl md:text-[90px] lg:text-[115px] font-black tracking-tighter text-[#2952FF] pr-1.5 sm:pr-3"
+                className="about-year-digit text-5xl sm:text-7xl md:text-[90px] lg:text-[115px] font-black tracking-tighter text-[#2952FF] pr-1.5 sm:pr-3"
                 style={{
                   fontFamily: "var(--font-condensed), Anton, Impact, sans-serif",
                   letterSpacing: "-0.03em",
+                  opacity: 0,
                 }}
               >
                 26

@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useRef } from "react";
 import { ArrowRight } from "lucide-react";
+import { gsap } from "@/lib/gsap";
 
 interface ServiceItem {
   id: string;
@@ -11,7 +12,59 @@ interface ServiceItem {
 }
 
 export function ServicesSection() {
-  const [activeId, setActiveId] = useState<string>("influencer-marketing");
+  const sectionRef = useRef<HTMLElement>(null);
+  const headingRef = useRef<HTMLDivElement>(null);
+  const cardsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !cardsRef.current) return;
+    const cards = cardsRef.current.querySelectorAll(".service-card-item");
+
+    const ctx = gsap.context(() => {
+      // 1. Heading Staggered Left-to-Right + Bottom-to-Up Reveal
+      if (headingRef.current) {
+        gsap.fromTo(
+          headingRef.current,
+          { opacity: 0, x: -40, y: 30 },
+          {
+            opacity: 1,
+            x: 0,
+            y: 0,
+            duration: 0.85,
+            ease: "power3.out",
+            scrollTrigger: {
+              trigger: headingRef.current,
+              start: "top 85%",
+              once: true,
+            },
+          }
+        );
+      }
+
+      // 2. Services Cards: Buttery smooth organic cascade reveal
+      if (cards && cards.length > 0) {
+        gsap.fromTo(
+          cards,
+          { opacity: 0, y: 35, scale: 0.98 },
+          {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            duration: 0.8,
+            stagger: 0.1,
+            ease: "power2.out",
+            scrollTrigger: {
+              trigger: cardsRef.current,
+              start: "top 78%",
+              once: true,
+            },
+          }
+        );
+      }
+    }, sectionRef);
+
+    return () => ctx.revert();
+  }, []);
 
   const services: ServiceItem[] = [
     {
@@ -61,7 +114,11 @@ export function ServicesSection() {
   ];
 
   return (
-    <section id="services" className="relative w-full bg-[#E8E8EA] py-16 sm:py-24 px-4 sm:px-6 md:px-8 select-none overflow-visible">
+    <section
+      ref={sectionRef}
+      id="services"
+      className="relative w-full bg-[#E8E8EA] py-16 sm:py-24 px-4 sm:px-6 md:px-8 select-none overflow-visible"
+    >
       {/* Blueprint Grid Background Pattern */}
       <div
         className="absolute inset-0 pointer-events-none opacity-40"
@@ -75,8 +132,8 @@ export function ServicesSection() {
       />
 
       <div className="relative max-w-[1400px] mx-auto overflow-visible">
-        {/* Header: OUR SERVICES (OUR SERVICE → on small screens) */}
-        <div className="pb-10 sm:pb-14 border-b border-zinc-300/80">
+        {/* Header: OUR SERVICES (OUR SERVICE → on small screens) with GSAP scroll reveal */}
+        <div ref={headingRef} className="pb-10 sm:pb-14 border-b border-zinc-300/80">
           <div className="flex items-baseline gap-3 sm:gap-4">
             <span className="font-mono text-xl sm:text-2xl font-bold text-zinc-950 hidden sm:inline-block">
               (05)
@@ -101,9 +158,12 @@ export function ServicesSection() {
         </div>
 
         {/* Continuous Stacked Container with 2.5px white border and overflow-visible */}
-        <div className="mt-20 sm:mt-24 pt-12 sm:pt-14 p-2 sm:p-3 flex flex-col rounded-[32px] sm:rounded-[40px] border-[2.5px] border-white bg-white/70 shadow-sm relative overflow-visible">
+        <div
+          ref={cardsRef}
+          className="mt-20 sm:mt-24 pt-12 sm:pt-14 p-2 sm:p-3 flex flex-col rounded-[32px] sm:rounded-[40px] border-[2.5px] border-white bg-white/70 shadow-sm relative overflow-visible"
+        >
           {services.map((item, idx) => {
-            const isActive = activeId === item.id;
+            const isActive = idx === 0;
             const tabOffsetClass = tabOffsets[idx];
             // Increasing z-index ensures every subsequent card's tab overlaps in front and is 100% visible
             const cardZIndex = (idx + 1) * 10;
@@ -111,15 +171,14 @@ export function ServicesSection() {
             return (
               <div
                 key={item.id}
-                onClick={() => setActiveId(item.id)}
-                className={`group relative w-full cursor-pointer transition-all duration-200 rounded-[20px] sm:rounded-[24px] border-[2px] border-white overflow-visible ${
+                className={`service-card-item group relative w-full transition-all duration-200 rounded-[20px] sm:rounded-[24px] border-[2px] border-white overflow-visible ${
                   idx > 0 ? "-mt-1" : ""
                 } ${
                   isActive
                     ? "bg-[#2952FF] text-white shadow-lg shadow-blue-600/20"
-                    : "bg-[#F0F0F3] text-zinc-900 hover:bg-[#E8E8EC]"
+                    : "bg-[#F0F0F3] text-zinc-900"
                 }`}
-                style={{ zIndex: cardZIndex }}
+                style={{ opacity: 0, zIndex: cardZIndex }}
               >
                 {/* Rounded White-Bordered Sloped Tab Strip - Visible on EVERY card */}
                 <div

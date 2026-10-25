@@ -1,11 +1,49 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import Image from "next/image";
+import { gsap } from "@/lib/gsap";
 
 export function SiteFooter() {
+  const footerRef = useRef<HTMLElement>(null);
+  const watermarkRef = useRef<HTMLHeadingElement>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const ctx = gsap.context(() => {
+      const letters = watermarkRef.current?.querySelectorAll(".footer-letter");
+      if (letters && letters.length > 0) {
+        gsap.fromTo(
+          letters,
+          { opacity: 0, y: 65, scale: 0.9 },
+          {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            duration: 0.7,
+            stagger: 0.035,
+            ease: "back.out(1.4)",
+            scrollTrigger: {
+              trigger: watermarkRef.current,
+              start: "top 92%",
+              once: true,
+            },
+          }
+        );
+      }
+    }, footerRef);
+
+    return () => ctx.revert();
+  }, []);
+
+  const watermarkText = "Prime Pixel";
+
   return (
-    <footer className="w-full bg-[#FAF8F5] pt-6 sm:pt-10 pb-8 px-4 sm:px-8 select-none overflow-hidden">
+    <footer
+      ref={footerRef}
+      className="w-full bg-[#FAF8F5] pt-6 sm:pt-10 pb-8 px-4 sm:px-8 select-none overflow-hidden"
+    >
       <div className="max-w-[1400px] mx-auto">
         {/* Navigation & Social Icons Row matching media_1791549934332.png */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 text-xs sm:text-sm text-zinc-600 pb-12">
@@ -105,8 +143,19 @@ export function SiteFooter() {
 
         {/* Giant Watermark Typography matching media_1791549934332.png */}
         <div className="w-full overflow-hidden select-none pointer-events-none text-center">
-          <h2 className="text-[12.5vw] font-black tracking-tighter leading-none text-zinc-300/40 uppercase">
-            Prime Pixel
+          <h2
+            ref={watermarkRef}
+            className="text-[12.5vw] font-black tracking-tighter leading-none text-zinc-300/40 uppercase flex items-center justify-center"
+          >
+            {watermarkText.split("").map((char, idx) => (
+              <span
+                key={idx}
+                className="footer-letter inline-block"
+                style={{ opacity: 0 }}
+              >
+                {char === " " ? "\u00A0" : char}
+              </span>
+            ))}
           </h2>
         </div>
       </div>

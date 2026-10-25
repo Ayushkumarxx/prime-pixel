@@ -1,6 +1,5 @@
-"use client";
-
 import React, { useState, useEffect, useRef } from "react";
+import { gsap } from "@/lib/gsap";
 
 interface EyeOffset {
   x: number;
@@ -20,6 +19,79 @@ interface RowConfig {
 export function SearchCreatorsSection() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [pupilOffset, setPupilOffset] = useState<EyeOffset>({ x: 0, y: 0 });
+
+  // GSAP scroll entrance animations
+  useEffect(() => {
+    if (typeof window === "undefined" || !containerRef.current) return;
+
+    const ctx = gsap.context(() => {
+      // 1. Search Loupe Icon Pop & Stagger
+      const loupe = containerRef.current?.querySelector(".search-loupe-icon");
+      if (loupe) {
+        gsap.fromTo(
+          loupe,
+          { scale: 0, opacity: 0 },
+          {
+            scale: 1,
+            opacity: 1,
+            duration: 0.8,
+            ease: "back.out(2)",
+            scrollTrigger: {
+              trigger: containerRef.current,
+              start: "top 85%",
+              once: true,
+            },
+          }
+        );
+      }
+
+      // 2. Eyes Pop in Staggered
+      const eyes = containerRef.current?.querySelectorAll(".search-eye-slot");
+      if (eyes && eyes.length > 0) {
+        gsap.fromTo(
+          eyes,
+          { scale: 0, opacity: 0 },
+          {
+            scale: 1,
+            opacity: 1,
+            duration: 0.6,
+            stagger: 0.15,
+            delay: 0.15,
+            ease: "back.out(1.8)",
+            scrollTrigger: {
+              trigger: containerRef.current,
+              start: "top 85%",
+              once: true,
+            },
+          }
+        );
+      }
+
+      // 3. Headline Text Staggered Reveal
+      const textLines = containerRef.current?.querySelectorAll("#headline-text text");
+      if (textLines && textLines.length > 0) {
+        gsap.fromTo(
+          textLines,
+          { opacity: 0, y: 25 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.75,
+            stagger: 0.16,
+            delay: 0.25,
+            ease: "power2.out",
+            scrollTrigger: {
+              trigger: containerRef.current,
+              start: "top 85%",
+              once: true,
+            },
+          }
+        );
+      }
+    }, containerRef);
+
+    return () => ctx.revert();
+  }, []);
 
   // Interactive pupil tracking towards mouse
   useEffect(() => {
@@ -66,33 +138,33 @@ export function SearchCreatorsSection() {
       loupeCol: 8,
     },
 
-    // Row 3: Fourth tier, 17 dots. Center skipped for headline text
+    // Row 3: Fourth tier. Center skipped for headline text with generous breathing room
     {
       center: 320,
       edge: 225,
       r: 27,
       count: 17,
-      skipCenter: 120,
+      skipCenter: 150,
       eyeCols: [],
     },
 
-    // Row 4: Fifth tier, 17 dots. Center skipped for headline text
+    // Row 4: Fifth tier. Center skipped for headline text with generous breathing room
     {
       center: 395,
       edge: 295,
       r: 28.5,
       count: 17,
-      skipCenter: 175,
+      skipCenter: 210,
       eyeCols: [],
     },
 
-    // Row 5: Sixth tier, 17 dots. Center skipped for headline text
+    // Row 5: Sixth tier. Center skipped for headline text with generous breathing room
     {
       center: 475,
       edge: 370,
       r: 30,
       count: 17,
-      skipCenter: 215,
+      skipCenter: 260,
       eyeCols: [],
     },
   ];
@@ -152,33 +224,37 @@ export function SearchCreatorsSection() {
                   // If this column is the Loupe slot
                   if (row.loupeCol === col) {
                     return (
-                      <g key={`loupe-${ri}-${col}`} transform={`translate(${x}, ${y})`}>
+                      <g
+                        key={`loupe-${ri}-${col}`}
+                        className="search-loupe-icon"
+                        transform={`translate(${x}, ${y})`}
+                      >
                         {/* Loupe Handle (angled at 45° down-right) */}
                         <rect
-                          x={22}
-                          y={22}
-                          width={11}
-                          height={28}
-                          rx={5.5}
+                          x={24}
+                          y={24}
+                          width={12}
+                          height={30}
+                          rx={6}
                           fill="#000000"
-                          transform="rotate(-45 22 22)"
+                          transform="rotate(-45 24 24)"
                         />
                         {/* Loupe Outer Ring */}
                         <circle
                           cx={0}
                           cy={0}
-                          r={row.r + 9}
+                          r={row.r + 11}
                           fill="#FFFFFF"
                           stroke="#000000"
-                          strokeWidth={6}
+                          strokeWidth={6.5}
                         />
                         {/* Loupe Glass Inner Tint */}
-                        <circle cx={0} cy={0} r={row.r + 3} fill="#EFF5FF" />
+                        <circle cx={0} cy={0} r={row.r + 4} fill="#EFF5FF" />
                         {/* Glass Crescent Highlight */}
                         <path
                           d={`M -${row.r * 0.6},-${row.r * 0.3} A ${row.r * 0.75},${row.r * 0.75} 0 0,1 ${row.r * 0.55},-${row.r * 0.55}`}
                           stroke="#FFFFFF"
-                          strokeWidth={3.5}
+                          strokeWidth={4}
                           strokeLinecap="round"
                           fill="none"
                         />
@@ -189,7 +265,11 @@ export function SearchCreatorsSection() {
                   // If this column is an Eye slot
                   if (row.eyeCols.includes(col)) {
                     return (
-                      <g key={`eye-${ri}-${col}`} transform={`translate(${x}, ${y})`}>
+                      <g
+                        key={`eye-${ri}-${col}`}
+                        className="search-eye-slot"
+                        transform={`translate(${x}, ${y})`}
+                      >
                         {/* Eye Sclera: Exact same radius as surrounding row dots, with thick black border */}
                         <circle
                           cx={0}
@@ -237,13 +317,13 @@ export function SearchCreatorsSection() {
             );
           })}
 
-          {/* Centered High-End Editorial Typography */}
+          {/* Centered High-End Editorial Typography - Bigger & airy for small screens */}
           <g id="headline-text" textAnchor="middle">
             <text
               x={600}
-              y={445}
+              y={440}
               fill="#FFFFFF"
-              fontSize="48"
+              fontSize="56"
               fontWeight="bold"
               style={{ fontFamily: "var(--font-serif, 'DM Serif Display', Georgia, serif)" }}
               className="tracking-tight select-none"
@@ -252,9 +332,9 @@ export function SearchCreatorsSection() {
             </text>
             <text
               x={600}
-              y={495}
+              y={496}
               fill="#FFFFFF"
-              fontSize="42"
+              fontSize="46"
               fontWeight="bold"
               style={{ fontFamily: "var(--font-serif, 'DM Serif Display', Georgia, serif)" }}
               className="tracking-tight select-none"

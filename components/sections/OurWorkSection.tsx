@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { mascotPink, mascotGreen } from "@/public/images";
+import { gsap, ScrollTrigger } from "@/lib/gsap";
 
 interface WorkItem {
   id: string;
@@ -110,7 +111,60 @@ const CATEGORIES = [
 
 export function OurWorkSection() {
   const [activeCategory, setActiveCategory] = useState<string>("INFLUENCER MARKETING");
+  const sectionRef = useRef<HTMLElement>(null);
+  const headingRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const ctx = gsap.context(() => {
+      // 1. Heading Staggered Left-to-Right + Bottom-to-Up Reveal (WORK - THAT - WORKS)
+      if (headingRef.current) {
+        const parts = headingRef.current.querySelectorAll(".work-heading-part");
+        gsap.fromTo(
+          parts,
+          { opacity: 0, x: -40, y: 30 },
+          {
+            opacity: 1,
+            x: 0,
+            y: 0,
+            duration: 0.85,
+            stagger: 0.15,
+            ease: "power3.out",
+            scrollTrigger: {
+              trigger: headingRef.current,
+              start: "top 85%",
+              once: true,
+            },
+          }
+        );
+      }
+
+      // 2. Showcase Items: Left-to-Right Staggered Reveal
+      const items = scrollContainerRef.current?.querySelectorAll(".work-card-item");
+      if (items && items.length > 0) {
+        gsap.fromTo(
+          items,
+          { opacity: 0, x: -70 },
+          {
+            opacity: 1,
+            x: 0,
+            duration: 0.8,
+            stagger: 0.1,
+            ease: "power3.out",
+            scrollTrigger: {
+              trigger: scrollContainerRef.current,
+              start: "top 80%",
+              once: true,
+            },
+          }
+        );
+      }
+    }, sectionRef);
+
+    return () => ctx.revert();
+  }, [activeCategory]);
 
   const currentItems = WORK_CATEGORIES[activeCategory] || [];
 
@@ -125,8 +179,9 @@ export function OurWorkSection() {
 
   return (
     <section
+      ref={sectionRef}
       id="work"
-      className="relative w-full bg-[#E8E8EA] py-10 sm:py-16 md:py-20 px-4 sm:px-6 md:px-8 lg:px-12 select-none overflow-hidden"
+      className="relative w-full bg-[#E8E8EA] py-10 sm:py-16 md:py-20 px-4 sm:px-6 md:px-8 lg:px-12 select-none overflow-x-clip"
     >
       {/* Blueprint Grid Background Pattern (Matching ServicesSection) */}
       <div
@@ -145,10 +200,13 @@ export function OurWorkSection() {
         {/* ======================================================== */}
         {/* 1. Header: WORK - THAT - WORKS (Responsive Scaling)      */}
         {/* ======================================================== */}
-        <div className="w-full mb-10 sm:mb-16 md:mb-24 lg:mb-32 pt-2 sm:pt-4 overflow-visible">
+        <div
+          ref={headingRef}
+          className="work-header-text w-full mb-10 sm:mb-16 md:mb-24 lg:mb-32 pt-2 sm:pt-4 overflow-visible"
+        >
           <div className="w-full flex items-center justify-center gap-1.5 sm:gap-4 md:gap-7 whitespace-nowrap overflow-visible">
             <h2
-              className="text-[11.5vw] xs:text-[12.5vw] sm:text-[13.5vw] md:text-[14vw] lg:text-[170px] xl:text-[195px] font-black text-[#2952FF] uppercase leading-[0.85] tracking-[-0.035em] select-none transform scale-y-[1.2] origin-bottom"
+              className="work-heading-part text-[11.5vw] xs:text-[12.5vw] sm:text-[13.5vw] md:text-[14vw] lg:text-[170px] xl:text-[195px] font-black text-[#2952FF] uppercase leading-[0.85] tracking-[-0.035em] select-none transform scale-y-[1.2] origin-bottom"
               style={{
                 fontFamily: "var(--font-condensed), Anton, 'Bebas Neue', Impact, sans-serif",
                 fontWeight: 900,
@@ -157,14 +215,14 @@ export function OurWorkSection() {
               WORK
             </h2>
 
-            <div className="flex items-center justify-center px-1 sm:px-2 shrink-0 self-center">
+            <div className="work-heading-part flex items-center justify-center px-1 sm:px-2 shrink-0 self-center">
               <span className="text-[8px] xs:text-[9px] sm:text-[11px] md:text-xs lg:text-sm font-extrabold tracking-[0.2em] sm:tracking-[0.25em] text-[#2952FF] uppercase ">
                 THAT
               </span>
             </div>
 
             <h2
-              className="text-[11.5vw] xs:text-[12.5vw] sm:text-[13.5vw] md:text-[14vw] lg:text-[170px] xl:text-[195px] font-black text-[#2952FF] uppercase leading-[0.85] tracking-[-0.035em] select-none transform scale-y-[1.2] origin-bottom"
+              className="work-heading-part text-[11.5vw] xs:text-[12.5vw] sm:text-[13.5vw] md:text-[14vw] lg:text-[170px] xl:text-[195px] font-black text-[#2952FF] uppercase leading-[0.85] tracking-[-0.035em] select-none transform scale-y-[1.2] origin-bottom"
               style={{
                 fontFamily: "var(--font-condensed), Anton, 'Bebas Neue', Impact, sans-serif",
                 fontWeight: 900,
@@ -233,7 +291,7 @@ export function OurWorkSection() {
         {currentItems.length > 0 ? (
           <div
             ref={scrollContainerRef}
-            className="w-full flex items-start gap-3.5 sm:gap-5 md:gap-6 overflow-x-auto scrollbar-none pb-6 pt-1 snap-x snap-mandatory -mx-4 px-4 sm:mx-0 sm:px-0"
+            className="w-full flex items-start gap-3.5 sm:gap-5 md:gap-6 overflow-x-auto scrollbar-none pb-6 pt-1 -mx-4 px-4 sm:mx-0 sm:px-0"
           >
             {currentItems.map((item) => {
               // Alternating heights scaled responsively from mobile to desktop
@@ -244,21 +302,22 @@ export function OurWorkSection() {
               return (
                 <div
                   key={item.id}
-                  className="group shrink-0 w-[205px] xs:w-[240px] sm:w-[270px] md:w-[290px] lg:w-[310px] flex flex-col snap-start"
+                  className="work-card-item group shrink-0 w-[205px] xs:w-[240px] sm:w-[270px] md:w-[290px] lg:w-[310px] flex flex-col"
+                  style={{ opacity: 0 }}
                 >
                   {/* Media Card Container with Alternating Big/Small Height */}
                   <div
                     className={`relative w-full ${heightClass} overflow-hidden bg-zinc-100 border border-zinc-200 shadow-sm transition-all duration-300 group-hover:shadow-md`}
                   >
                     {item.type === "video" ? (
-                      /* Simple Clean Video */
+                      /* Simple Clean Video - pointer-events-none avoids touch hijacking */
                       <video
                         src={item.src}
                         autoPlay
                         loop
                         muted
                         playsInline
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 pointer-events-none"
                       />
                     ) : (
                       <div className="relative w-full h-full overflow-hidden">
